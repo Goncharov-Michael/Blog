@@ -1,5 +1,6 @@
 import datetime
 import os
+from email.message import EmailMessage
 from flask import Flask, render_template, redirect, url_for, request, flash, abort
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
@@ -10,10 +11,12 @@ from flask_login import login_user, LoginManager, current_user, logout_user, log
 from forms import NewBlogForm, RegisterForm, LoginForm, CommentForm
 from tables import db, BlogPost, User, Comment
 from dotenv import load_dotenv
+from smtplib import SMTP
 
 
 load_dotenv()
-
+EMAIL = os.getenv("EMAIL")
+PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 """INITIALIZE FLASK(APP)"""
 app = Flask(__name__)
@@ -24,7 +27,7 @@ Bootstrap5(app)
 
 
 """INITIALIZE DB"""
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///posts.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DB_URI", "sqlite:///posts.db")
 db.init_app(app)
 
 
@@ -215,11 +218,39 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
     """"""
-    return render_template("contact.html")
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        phone = request.form.get("phone")
+        message = request.form.get("message")
+
+        send_message(name, email, phone, message)
+        return render_template("contact.html", msg_sent=True)
+
+    return render_template("contact.html", msg_sent=False)
+
+
+def send_message(name, user_email, phone, message):
+        # Configure user message
+        msg = EmailMessage()
+        msg["Subject"] = "New Message"
+        msg["From"] = user_email
+        msg["To"] = EMAIL
+        msg.set_content(f"Name: {name}\n"
+                        f"Email: {user_email}\n"
+                        f"Phone: {phone}\n"
+                        f"Message: {message}")
+
+        # Send message
+        with SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(EMAIL, PASSWORD)
+            server.send_message(msg)
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=False, port=5002)

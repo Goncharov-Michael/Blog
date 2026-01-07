@@ -11,6 +11,19 @@ db = SQLAlchemy(model_class=Base)
 
 
 class BlogPost(db.Model):
+    """
+    Blog post model.
+
+    Attributes:
+        id: Primary key.
+        author: The user who created the post.
+        title: Post title.
+        subtitle: Post subtitle.
+        date: Publication date as string.
+        body: Post content (HTML allowed via CKEditor).
+        img_url: URL of the post image.
+        comments: List of comments on the post.
+    """
     __tablename__ = "blog_post"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -25,10 +38,21 @@ class BlogPost(db.Model):
                                                cascade="all, delete", passive_deletes=True)
 
 class User(UserMixin, db.Model):
+    """
+    User model for authentication and authoring content.
+
+    Attributes:
+        id: Primary key.
+        email: Unique user email.
+        name: User's display name.
+        password: Hashed password.
+        posts: List of blog posts created by the user.
+        comments: List of comments made by the user.
+    """
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String(250), unique=True)
+    email: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(250))
     password: Mapped[str] = mapped_column(String(250))
 
@@ -41,7 +65,21 @@ class User(UserMixin, db.Model):
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="author",
                                                      cascade="all, delete", passive_deletes=True)
 
+
+    def __repr__(self):
+        return f"<User {self.id}: {self.email}>"
+
+
 class Comment(db.Model):
+    """
+    Comment model for blog posts.
+
+    Attributes:
+        id: Primary key.
+        text: Comment text.
+        author: User who wrote the comment.
+        post: Blog post the comment belongs to.
+    """
     __tablename__ = "comments"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

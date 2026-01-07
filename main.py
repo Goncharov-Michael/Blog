@@ -2,6 +2,7 @@ import datetime
 import os
 from email.message import EmailMessage
 from flask import Flask, render_template, redirect, url_for, request, flash, abort
+from flask.typing import ResponseReturnValue
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
@@ -11,8 +12,11 @@ from flask_login import login_user, LoginManager, current_user, logout_user, log
 from forms import NewBlogForm, RegisterForm, LoginForm, CommentForm
 from tables import db, BlogPost, User, Comment
 from dotenv import load_dotenv
-from smtplib import SMTP
+from smtplib import SMTP, SMTPException
+from typing import Callable, TypeVar
+import logging
 
+F = TypeVar("F", bound=Callable[..., object])
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -25,16 +29,13 @@ ckeditor.init_app(app)
 app.config["SECRET_KEY"] = os.getenv("FLASK_KEY")
 Bootstrap5(app)
 
-
 """INITIALIZE DB"""
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DB_URI", "sqlite:///posts.db")
 db.init_app(app)
 
-
 """CREATE TABLES"""
 with app.app_context():
     db.create_all()
-
 
 """INITIALIZE LOGIN MANAGER"""
 login_manager = LoginManager()
@@ -42,7 +43,7 @@ login_manager.init_app(app)
 
 
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_id: str) -> User | None:
     return User.query.get(int(user_id))
 
 
@@ -56,9 +57,26 @@ gravatar = Gravatar(app,
                     use_ssl=False,
                     base_url=None)
 
-
 """DECORATOR"""
-def admin_only(func):
+
+
+def admin_only(func: F) -> F:
+    """
+    Restrict access to a view function to administrators only.
+    This decorator ensures that the current user is authenticated and has
+    administrative privileges. If the user is not an administrator, a
+    403 Forbidden error is raised.
+    The decorated function preserves its original signature and return type.
+    Args:
+        func: The view function to protect.
+
+    Returns:
+        The same function, wrapped with an admin access check.
+
+    Raises:
+        HTTPException: If the current user is not an administrator.
+    """
+
     @wraps(func)
     @login_required
     def wrapper(*args, **kwargs):
@@ -71,22 +89,38 @@ def admin_only(func):
 
 
 """ROUTES"""
+
+
 @app.route("/register", methods=["GET", "POST"])
-def register():
+def register() -> ResponseReturnValue:
+    """
+    Handle user registration.
+
+    This view displays the registration form and processes form submission.
+    If the form is submitted with valid data, a new user account is created,
+    persisted to the database, and the user is logged in automatically.
+
+    If the provided email address is already registered, the user is
+    redirected to the login page with an error message.
+
+    Returns:
+        A rendered HTML template or an HTTP redirect response.
+    """
     register_form = RegisterForm()
 
     if register_form.validate_on_submit():
-        # Get data from form
+        # Extract form data for registration
         email = register_form.email.data
         password = generate_password_hash(register_form.password.data, method="pbkdf2:sha256", salt_length=8)
         name = register_form.name.data
         user = db.session.execute(db.select(User).where(User.email == email)).scalar()
 
-        # Check if email is not used
+        # Prevent duplicate registration if email is already in use
         if user:
             flash("You've already signed up with that email, log in instead!", "error")
             return redirect(url_for("login"))
 
+        # Create new user, save to database, log in, and redirect
         new_user = User(email=email, password=password, name=name)
         db.session.add(new_user)
         db.session.commit()
@@ -97,7 +131,19 @@ def register():
 
 
 @app.route("/login", methods=["GET", "POST"])
-def login():
+def login() -> ResponseReturnValue:
+    """
+    Handle user authentication.
+
+    This view renders the login form and processes login submissions.
+    When valid credentials are provided, the user is authenticated and
+    logged in, then redirected to the main page. If authentication fails,
+    an error message is displayed and the user is redirected back to the
+    login page.
+
+    Returns:
+        A rendered login page or an HTTP redirect response.
+    """
     login_form = LoginForm()
     if login_form.validate_on_submit():
         user = db.session.execute(db.select(User).where(User.email == login_form.email.data)).scalar()
@@ -115,26 +161,26 @@ def login():
             login_user(user)
             return redirect(url_for("get_all_posts", current_user=current_user))
 
-
     return render_template("login.html", form=login_form, current_user=current_user)
 
 
 @app.route("/logout")
-def logout():
+def logout() -> ResponseReturnValue:
+    """Terminate the current session and redirect to the main page."""
     logout_user()
     return redirect(url_for("get_all_posts", current_user=current_user))
 
 
 @app.route("/")
-def get_all_posts():
-    """"""
+def get_all_posts() -> ResponseReturnValue:
+    """Query all blog posts and render the main page with the result."""
     posts = db.session.execute(db.select(BlogPost)).scalars().all()
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
-def show_post(post_id):
-    """"""
+def show_post(post_id: int) -> ResponseReturnValue:
+    """Render a blog post page and process new comments if submitted."""
     post = db.get_or_404(BlogPost, post_id)
     comments = post.comments
     comment_form = CommentForm()
@@ -156,8 +202,14 @@ def show_post(post_id):
 
 @app.route("/new-post", methods=["GET", "POST"])
 @admin_only
-def add_new_post():
-    """"""
+def add_new_post() -> ResponseReturnValue:
+    """
+    Create a new blog post (admin only).
+
+    Renders the new post form and processes submissions. On valid form
+    submission, the post is saved to the database and the user is
+    redirected to the main page.
+    """
     form = NewBlogForm()
     if form.validate_on_submit():
         new_post = BlogPost(
@@ -177,8 +229,14 @@ def add_new_post():
 
 @app.route("/edit-post/<int:post_id>", methods=["GET", "POST"])
 @admin_only
-def edit_post(post_id):
-    """"""
+def edit_post(post_id: int) -> ResponseReturnValue:
+    """
+    Edit an existing blog post (admin only).
+
+    Renders the post form pre-filled with the current post data and
+    processes updates on submission. On successful update, redirects
+    to the post page.
+    """
     post = db.get_or_404(BlogPost, post_id)
     form = NewBlogForm(
         title=post.title,
@@ -204,8 +262,8 @@ def edit_post(post_id):
 
 @app.route('/delete-post/<int:post_id>')
 @admin_only
-def delete_post(post_id):
-    """"""
+def delete_post(post_id: int) -> ResponseReturnValue:
+    """Delete a specified blog post, remove it from the database and redirect to the main page (admin only)."""
     post = db.get_or_404(BlogPost, post_id)
     db.session.delete(post)
     db.session.commit()
@@ -213,14 +271,22 @@ def delete_post(post_id):
 
 
 @app.route("/about")
-def about():
-    """"""
+def about() -> ResponseReturnValue:
+    """Render the About page."""
     return render_template("about.html")
 
 
 @app.route("/contact", methods=["GET", "POST"])
-def contact():
-    """"""
+def contact() -> ResponseReturnValue:
+    """
+    Display the contact form and send user messages.
+
+    Handles GET and POST requests:
+      - GET: renders the contact form for the user to fill out.
+      - POST: retrieves form data (name, email, phone, message),
+        sends the message via `send_message`, and renders the page
+        with a confirmation that the message was sent.
+    """
 
     if request.method == "POST":
         name = request.form.get("name")
@@ -234,23 +300,39 @@ def contact():
     return render_template("contact.html", msg_sent=False)
 
 
-def send_message(name, user_email, phone, message):
-        # Configure user message
-        msg = EmailMessage()
-        msg["Subject"] = "New Message"
-        msg["From"] = user_email
-        msg["To"] = EMAIL
-        msg.set_content(f"Name: {name}\n"
-                        f"Email: {user_email}\n"
-                        f"Phone: {phone}\n"
-                        f"Message: {message}")
+def send_message(name: str, user_email: str, phone: str, message: str) -> None:
+    """
+    Send a contact message via email.
 
-        # Send message
+    Constructs an email using the provided user information and message
+    content, then sends it to the configured recipient using Gmail SMTP.
+
+    Args:
+        name: Name of the sender.
+        user_email: Email address of the sender.
+        phone: Phone number of the sender.
+        message: Message content.
+
+    Side effects:
+        Sends an email to the configured recipient (EMAIL).
+    """
+    msg = EmailMessage()
+    msg["Subject"] = "New Message"
+    msg["From"] = user_email
+    msg["To"] = EMAIL
+    msg.set_content(f"Name: {name}\n"
+                    f"Email: {user_email}\n"
+                    f"Phone: {phone}\n"
+                    f"Message: {message}")
+
+    # Send message
+    try:
         with SMTP("smtp.gmail.com", 587) as server:
             server.starttls()
             server.login(EMAIL, PASSWORD)
             server.send_message(msg)
-
+    except SMTPException as exc:
+        logging.exception("Failed to send contact email")
 
 if __name__ == "__main__":
     app.run(debug=False, port=5002)

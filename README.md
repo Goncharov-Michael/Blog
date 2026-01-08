@@ -64,6 +64,29 @@ Create a .env file in the project root and with your configuration:
 4. Run the App:\
 python main.py
 
+
+## Demo accounts (quick verification)
+
+Use these options to test admin and user flows quickly.
+
+### Option A — Live demo (recommended)  
+Open the deployed site and try the flows directly:  
+**Live demo:** [https://your-render-url.example.com](https://blog-9bdu.onrender.com/) ←
+- **Admin:** `admin@gmail.com` / `asdf`  
+- **User:** `user@gmail.com` / `user123`
+
+> Tip: Sign in as the admin to access **New Post / Edit / Delete** routes.
+
+### Option B — Run locally (quick start)  
+If you prefer to run the app on your machine, follow the **Quick Start** section to set up the project and database, then register a new account. The first account created in an empty database becomes the admin (ID = 1).
+
+---
+
+**Security notes**
+- Demo credentials are for testing only. Change or remove them before publicly sharing your instance.  
+- Never commit real credentials or your `.env` file to the repository.
+
+
 ## Architecture Overview
 ### Frontend
 - Built with Jinja2 templates + Flask-Bootstrap 5

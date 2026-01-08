@@ -38,11 +38,10 @@
               >
             </div>
           {% endif %}
-
+          <br>
         <!-- Comments Area -->
         <div class="comment">
-            {{ ckeditor.load() }}
-            {{ render_form(form) }}
+
           <!-- Show all the comments on a post -->
             {% if comments %}
                 {% for comment in comments %}
@@ -59,6 +58,10 @@
               </ul>
                 {% endfor %}
             {% endif %}
+            {# Make comment area#}
+            <br>
+            {{ ckeditor.load() }}
+            {{ render_form(form) }}
         </div>
       </div>
     </div>

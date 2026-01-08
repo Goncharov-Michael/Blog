@@ -174,7 +174,7 @@ def logout() -> ResponseReturnValue:
 @app.route("/")
 def get_all_posts() -> ResponseReturnValue:
     """Query all blog posts and render the main page with the result."""
-    posts = db.session.execute(db.select(BlogPost)).scalars().all()
+    posts = db.session.execute(db.select(BlogPost)).scalars().all().__reversed__()
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 
@@ -241,7 +241,6 @@ def edit_post(post_id: int) -> ResponseReturnValue:
     form = NewBlogForm(
         title=post.title,
         subtitle=post.subtitle,
-        author=post.author,
         img_url=post.img_url,
         body=post.body
     )
@@ -250,7 +249,6 @@ def edit_post(post_id: int) -> ResponseReturnValue:
         # Update the Post
         post.title = form.title.data
         post.subtitle = form.subtitle.data
-        post.author = form.author.data
         post.img_url = form.img_url.data
         post.body = form.body.data
         db.session.commit()
@@ -332,7 +330,7 @@ def send_message(name: str, user_email: str, phone: str, message: str) -> None:
             server.login(EMAIL, PASSWORD)
             server.send_message(msg)
     except SMTPException as exc:
-        logging.exception("Failed to send contact email")
+        logging.exception(f"Failed to send contact email: {exc}")
 
 if __name__ == "__main__":
     app.run(debug=False, port=5002)

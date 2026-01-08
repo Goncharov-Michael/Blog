@@ -70,8 +70,8 @@ python main.py
 Use these options to test admin and user flows quickly.
 
 ### Option A — Live demo (recommended)  
-Open the deployed site and try the flows directly:  
-**Live demo:** [https://your-render-url.example.com](https://blog-9bdu.onrender.com/) ←
+Open the deployed site and try the flows directly: 
+**Live demo:** https://blog-p9im.onrender.com/ ←
 - **Admin:** `admin@gmail.com` / `asdf`  
 - **User:** `user@gmail.com` / `user123`
 

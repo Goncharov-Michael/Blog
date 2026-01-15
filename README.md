@@ -1,24 +1,16 @@
 # Flask Blog Application
 
-A full-stack personal blog platform built with Python and Flask. It provides user registration, login/logout, and an admin interface for creating, editing, and deleting blog posts.
+A full-stack personal blog platform built with Python and Flask. It provides user registration, login/logout, and an admin interface for creating, editing, and deleting blog posts.\
+This project was built as my first full-stack Flask app while learning backend development. It shows basic user accounts, admin features, and data storage.
+
 
 ## Features
 
-- User Authentication: Users can register and log in using Flask-Login. Passwords are securely hashed with Werkzeug.
+Authentication & Security - user login, password hashing, protected routes.
 
-- Admin Role: The first registered user (ID=1) acts as admin. Only the admin can access routes for creating, editing, or deleting posts (enforced by a custom admin_only decorator).
+Admin & Blog Management - admin creates, edits, and deletes blog posts.
 
-- Blog Management: Admins can write posts with a title, subtitle, image URL, and rich text content (using CKEditor). Regular users can read posts and authors are credited on each post.
-
-- Comments: Authenticated users can leave comments on any post. Each Comment is linked to its author and the corresponding BlogPost. Deleting a post or user cascades to delete related comments.
-
-- Contact Form: A “Contact” page collects messages (name, email, phone, message) and sends them via Gmail SMTP. The backend handles form validation and email delivery.
-
-- Database: Uses SQLAlchemy ORM (a “SQL toolkit and ORM”) with a SQLite (or configurable) database. Data models include User, BlogPost, and Comment with one-to-many relationships and cascade deletes for integrity.
-
-- Responsive UI: Built with Flask-Bootstrap 5 for a modern, responsive design. Flask-Gravatar generates user avatars. The layout focuses on readability, using Bootstrap cards and grids for posts.
-
-- Security & Config: Routes are protected with Flask-Login’s @login_required decorator. Sensitive settings (SECRET_KEY, email credentials) are loaded from a .env file via python-dotenv
+Database Integrity - SQLAlchemy models with proper relationships and cascades.
 
 ### Tech Stack
 
@@ -42,10 +34,6 @@ A full-stack personal blog platform built with Python and Flask. It provides use
 
 
 ## Quick Start
-### Prerequisites
-
-- Python 3.10+
-- Git
 
 ### Installations
 1. Clone the repository\
@@ -65,21 +53,16 @@ Create a .env file in the project root and with your configuration:
 python main.py
 
 
-## Demo accounts (quick verification)
+## Demo account
 
-Use these options to test admin and user flows quickly.
-
-### Option A — Live demo (recommended)  
-Open the deployed site and try the flows directly: 
+### Live demo
+Open the deployed site and try the flows directly. 
 **Live demo:** https://blog-p9im.onrender.com/ ←
 - **Admin:** `admin@gmail.com` / `asdf`  
 - **User:** `user@gmail.com` / `user123`
 
 > Tip: Sign in as the admin to access **New Post / Edit / Delete** routes.
-
-### Option B — Run locally (quick start)  
-If you prefer to run the app on your machine, follow the **Quick Start** section to set up the project and database, then register a new account. The first account created in an empty database becomes the admin (ID = 1).
-
+ 
 ---
 
 **Security notes**

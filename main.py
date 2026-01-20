@@ -6,6 +6,7 @@ from flask.typing import ResponseReturnValue
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
+from flask_migrate import Migrate
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
@@ -35,15 +36,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
+migrate = Migrate(app, db)
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 login_manager = LoginManager(app)
 gravatar = Gravatar(app, size=100, rating='g', default='retro',
                     force_default=False, force_lower=False, use_ssl=False, base_url=None)
-
-"""CREATE TABLES"""
-with app.app_context():
-    db.create_all()
 
 
 @login_manager.user_loader

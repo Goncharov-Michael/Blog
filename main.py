@@ -18,44 +18,38 @@ import logging
 
 F = TypeVar("F", bound=Callable[..., object])
 
+"""INITIALIZATION"""
+
+# Load environment variables
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("EMAIL_PASSWORD")
+DB_URI = os.getenv("DATABASE_URL")
+if not DB_URI:
+    raise RuntimeError("DATABASE_URL is not set")
 
-"""INITIALIZE FLASK(APP)"""
+# Initialize Flask app and extensions
 app = Flask(__name__)
-ckeditor = CKEditor()
-ckeditor.init_app(app)
 app.config["SECRET_KEY"] = os.getenv("FLASK_KEY")
-Bootstrap5(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-"""INITIALIZE DB"""
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DB_URI", "sqlite:///posts.db")
 db.init_app(app)
+ckeditor = CKEditor(app)
+Bootstrap5(app)
+login_manager = LoginManager(app)
+gravatar = Gravatar(app, size=100, rating='g', default='retro',
+                    force_default=False, force_lower=False, use_ssl=False, base_url=None)
 
 """CREATE TABLES"""
 with app.app_context():
     db.create_all()
-
-"""INITIALIZE LOGIN MANAGER"""
-login_manager = LoginManager()
-login_manager.init_app(app)
 
 
 @login_manager.user_loader
 def load_user(user_id: str) -> User | None:
     return User.query.get(int(user_id))
 
-
-"""GRAVATAR"""
-gravatar = Gravatar(app,
-                    size=100,
-                    rating='g',
-                    default='retro',
-                    force_default=False,
-                    force_lower=False,
-                    use_ssl=False,
-                    base_url=None)
 
 """DECORATOR"""
 
@@ -174,7 +168,7 @@ def logout() -> ResponseReturnValue:
 @app.route("/")
 def get_all_posts() -> ResponseReturnValue:
     """Query all blog posts and render the main page with the result."""
-    posts = db.session.execute(db.select(BlogPost)).scalars().all().__reversed__()
+    posts = db.session.execute(db.select(BlogPost)).scalars().all()[::-1]
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 
@@ -331,6 +325,7 @@ def send_message(name: str, user_email: str, phone: str, message: str) -> None:
             server.send_message(msg)
     except SMTPException as exc:
         logging.exception(f"Failed to send contact email: {exc}")
+
 
 if __name__ == "__main__":
     app.run(debug=False, port=5002)

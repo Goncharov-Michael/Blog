@@ -24,10 +24,10 @@ class BlogPost(db.Model):
         img_url: URL of the post image.
         comments: List of comments on the post.
     """
-    __tablename__ = "blog_post"
+    __tablename__ = "blog_posts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"))
+    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     author:Mapped["User"] = relationship("User", back_populates="posts")
     title: Mapped[str] = mapped_column(String(250), nullable=False, unique=True)
     subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
@@ -49,7 +49,7 @@ class User(UserMixin, db.Model):
         posts: List of blog posts created by the user.
         comments: List of comments made by the user.
     """
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
@@ -88,8 +88,8 @@ class Comment(db.Model):
     # ---------Add child relationship---------
     # "users.id" The users refers to the tablename of the Users class.
     # "comments" refers to the comments property in the User class.
-    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"))
+    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     author: Mapped["User"] = relationship("User", back_populates="comments")
 
-    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("blog_post.id", ondelete="CASCADE"))
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("blog_posts.id", ondelete="CASCADE"))
     post: Mapped["BlogPost"] = relationship("BlogPost", back_populates="comments")

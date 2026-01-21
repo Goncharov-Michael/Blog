@@ -2,6 +2,7 @@ import datetime
 import os
 from email.message import EmailMessage
 from flask import Flask, render_template, redirect, url_for, request, flash, abort
+from flask_migrate import Migrate
 from flask.typing import ResponseReturnValue
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
@@ -35,6 +36,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
+migrate = Migrate(app, db)
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 login_manager = LoginManager(app)
@@ -115,7 +117,7 @@ def register() -> ResponseReturnValue:
             return redirect(url_for("login"))
 
         # Create new user, save to database, log in, and redirect
-        new_user = User(email=email, password=password, name=name)
+        new_user = User(email=email, password_hash=password, name=name)
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
@@ -168,7 +170,7 @@ def logout() -> ResponseReturnValue:
 @app.route("/")
 def get_all_posts() -> ResponseReturnValue:
     """Query all blog posts and render the main page with the result."""
-    posts = db.session.execute(db.select(BlogPost)).scalars().all()[::-1]
+    posts = db.session.execute(db.select(BlogPost).order_by(BlogPost.created_at.asc())).scalars().all()
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 

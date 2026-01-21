@@ -31,9 +31,9 @@ class BlogPost(db.Model):
     author:Mapped["User"] = relationship("User", back_populates="posts")
     title: Mapped[str] = mapped_column(String(250), nullable=False, unique=True)
     subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
+    date: Mapped[str] = mapped_column(String(250), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
-    created_at: Mapped[str] = mapped_column(DateTime, nullable=False, server_default=db.func.now())
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post",
                                                cascade="all, delete", passive_deletes=True)
 

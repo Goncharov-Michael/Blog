@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String, Text, ForeignKey
+from sqlalchemy import Integer, String, Text, ForeignKey, DateTime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 
@@ -19,7 +19,7 @@ class BlogPost(db.Model):
         author: The user who created the post.
         title: Post title.
         subtitle: Post subtitle.
-        date: Publication date as string.
+        created_at: Post date.
         body: Post content (HTML allowed via CKEditor).
         img_url: URL of the post image.
         comments: List of comments on the post.
@@ -54,7 +54,7 @@ class User(UserMixin, db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(250))
-    password: Mapped[str] = mapped_column(String(250))
+    password_hash: Mapped[str] = mapped_column(String(250))
 
     # ---------Add parent relationship---------
     # "post_author" refer to the post_author property(author) in the BlogPost class.

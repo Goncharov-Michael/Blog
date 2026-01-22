@@ -45,7 +45,7 @@ class User(UserMixin, db.Model):
         id: Primary key.
         email: Unique user email.
         name: User's display name.
-        password: Hashed password.
+        password_hash: Hashed password.
         posts: List of blog posts created by the user.
         comments: List of comments made by the user.
     """

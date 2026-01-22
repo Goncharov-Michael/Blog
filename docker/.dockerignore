@@ -1,0 +1,13 @@
+../.env
+.venv
+.gitignore
+.python-version
+LICENSE
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+venv
+.envrc
+.git
+

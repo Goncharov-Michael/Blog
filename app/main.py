@@ -11,8 +11,8 @@ from flask_migrate import Migrate
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
-from forms import NewBlogForm, RegisterForm, LoginForm, CommentForm
-from tables import db, BlogPost, User, Comment
+from app.forms import NewBlogForm, RegisterForm, LoginForm, CommentForm
+from app.models import db, BlogPost, User, Comment
 from dotenv import load_dotenv
 from smtplib import SMTP, SMTPException
 from typing import Callable, TypeVar

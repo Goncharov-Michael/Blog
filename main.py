@@ -167,7 +167,7 @@ def logout() -> ResponseReturnValue:
 @app.route("/")
 def get_all_posts() -> ResponseReturnValue:
     """Query all blog posts and render the main page with the result."""
-    posts = db.session.execute(db.select(BlogPost).order_by(BlogPost.created_at.asc())).scalars().all()
+    posts = db.session.execute(db.select(BlogPost)).scalars().all()[::-1]
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 
@@ -209,7 +209,6 @@ def add_new_post() -> ResponseReturnValue:
             title=form.title.data,
             author=current_user,
             subtitle=form.subtitle.data,
-            date=datetime.datetime.now().strftime("%b %d, %Y"),
             body=form.body.data,
             img_url=form.img_url.data,
         )

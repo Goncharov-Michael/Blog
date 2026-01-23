@@ -4,7 +4,7 @@ set -euo pipefail
 # Minimal entrypoint for a personal Docker setup using Postgres + Flask-Migrate + Gunicorn
 
 : "${DATABASE_URL:?DATABASE_URL must be set}"
-: "${FLASK_APP:=main}"
+: "${FLASK_APP:=app.main}"
 : "${PORT:=5002}"
 
 cd /app || exit 1
@@ -35,7 +35,6 @@ PY
 
 # 2) Apply migrations (assumes migrations/ committed to repo)
 echo "[entrypoint] applying migrations"
-python -m flask --app "${FLASK_APP}" db migrate -m "Initial migration"
 python -m flask --app "${FLASK_APP}" db upgrade
 
 # 3) Launch Gunicorn (exec so it receives signals)

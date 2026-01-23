@@ -12,7 +12,11 @@ services:
       - "5432:5432"
 
   web:
-    build: ..
+    image: blog-web
+    container_name: blog
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     depends_on:
       - db
     env_file:
@@ -20,7 +24,7 @@ services:
     ports:
       - "5002:5002"
     volumes:
-      - .:/app
+      - ../:/app
     restart: unless-stopped
 
 volumes:

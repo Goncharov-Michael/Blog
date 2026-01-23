@@ -11,7 +11,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
 from app.forms import NewBlogForm, RegisterForm, LoginForm, CommentForm
-from models import db, BlogPost, User, Comment
+from app.models import db, BlogPost, User, Comment
 from dotenv import load_dotenv
 from smtplib import SMTP, SMTPException
 from typing import Callable, TypeVar
@@ -145,7 +145,7 @@ def login() -> ResponseReturnValue:
             flash("That email does not exist, please try again.", "error")
             return redirect(url_for("login"))
 
-        elif not check_password_hash(user.password, password):
+        elif not check_password_hash(user.password_hash, password):
             flash("Password incorrect, please try again.", "error")
             return redirect(url_for("login"))
 
@@ -166,7 +166,7 @@ def logout() -> ResponseReturnValue:
 @app.route("/")
 def get_all_posts() -> ResponseReturnValue:
     """Query all blog posts and render the main page with the result."""
-    posts = db.session.execute(db.select(BlogPost).order_by(BlogPost.created_at.asc())).scalars().all()
+    posts = db.session.execute(db.select(BlogPost)).scalars().all()[::-1]
     return render_template("index.html", all_posts=posts, current_user=current_user)
 
 
@@ -208,7 +208,6 @@ def add_new_post() -> ResponseReturnValue:
             title=form.title.data,
             author=current_user,
             subtitle=form.subtitle.data,
-            date=datetime.datetime.now().strftime("%b %d, %Y"),
             body=form.body.data,
             img_url=form.img_url.data,
         )

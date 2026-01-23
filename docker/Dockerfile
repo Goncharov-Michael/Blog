@@ -1,21 +1,27 @@
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
 WORKDIR /app
 
-# install system deps needed for psycopg2 build
+# system deps for psycopg2
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc libpq-dev && \
+    apt-get install -y --no-install-recommends libpq-dev gcc && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ../requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+# install python deps first (cache-friendly)
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-COPY .. .
+# copy application source ONLY
+COPY app/ ./app
+COPY migrations/ ./migrations
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# entrypoint
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 5002
 ENTRYPOINT ["/entrypoint.sh"]

@@ -1,4 +1,3 @@
-import datetime
 import os
 from email.message import EmailMessage
 from flask import Flask, render_template, redirect, url_for, request, flash, abort

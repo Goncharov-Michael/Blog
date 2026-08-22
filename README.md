@@ -3,6 +3,23 @@
 A full-stack personal blog platform built with Python and Flask. It provides user registration, login/logout, and an admin interface for creating, editing, and deleting blog posts.\
 This project was built as my first full-stack Flask app while learning backend development. It shows basic user accounts, admin features, and data storage.
 
+## Live Demo & Test Accounts
+
+**Live Demo:** https://blog-c4ko.onrender.com
+
+No installation required — open the live demo and test the application directly.
+
+**Admin**
+- Email: `admin@gmail.com`
+- Password: `admin`
+- Access: create, edit, and delete blog posts
+
+**User**
+- Email: `user@gmail.com`
+- Password: `user`
+- Access: authentication and comments
+
+> Demo credentials are for testing purposes only.
 
 ## Features
 
@@ -128,19 +145,6 @@ python -m flask --app app.main run
 - **`ModuleNotFoundError` or `ImportError`**: ensure you run commands from the project root and your venv is activated.  
 - **`FLASK_APP` points incorrectly**: replace `main.py` with the module name that exposes your `app` (e.g., `app.my`, etc.).  
 - **Permission/connection errors to Postgres**: check `DATABASE_URL`, Postgres service running, and user/password/port.
-
----
-
-
-## Demo account
-
-### Live demo
-Open the deployed site and try the flows directly. 
-**Live demo:** https://blog-c4ko.onrender.com ←
-- **Admin:** `admin@gmail.com` / `asdf`  
-- **User:** `user@gmail.com` / `user123`
-
-> Tip: Sign in as the admin to access **New Post / Edit / Delete** routes.
  
 ---
 
